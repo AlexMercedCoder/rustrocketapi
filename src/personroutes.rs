@@ -18,7 +18,7 @@ fn getConn() -> Result<Client, Error> {
     // GET DATABASE URL ENV VARIABLE
     let uri;
     dotenv().ok();
-    match env::var("DATABASE_URL") {
+    match env::var("DATABASE_URL2") {
         Ok(val) => uri = val,
         Err(_e) => uri = "none".to_string(),
     }
