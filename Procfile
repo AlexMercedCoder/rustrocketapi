@@ -1,1 +1,1 @@
-web: ./target/release/personapi
+web: ROCKET_PORT=$PORT ./target/release/personapi
