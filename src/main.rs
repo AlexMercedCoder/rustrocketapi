@@ -18,7 +18,7 @@ use std::env;
 fn main() {
 
 
-    let uri = env::var("DATABASE_URL");
+    let uri = env::var("DATABASE_URL2");
     print!("{:?}", uri.ok());
 
     rocket::ignite()
