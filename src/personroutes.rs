@@ -4,6 +4,16 @@ use serde::{Serialize, Deserialize};
 use postgres::{Client, NoTls, Error};
 use dotenv::dotenv;
 use std::env;
+use openssl::ssl::{SslConnector, SslMethod, SslVerifyMode};
+use postgres_openssl::MakeTlsConnector;
+
+//CREATE HEROKU TLS BUILDER
+fn get_connector() -> MakeTlsConnector {
+    // Create Ssl postgres connector without verification as required to connect to Heroku.
+    let mut builder = SslConnector::builder(SslMethod::tls()).unwrap();
+    builder.set_verify(SslVerifyMode::NONE);
+    MakeTlsConnector::new(builder.build())
+}
 
 // CREATE STRUCT THAT IS SERIALIZABLE INTO JSON
 #[derive(Serialize, Deserialize, Debug)]
@@ -17,6 +27,7 @@ pub struct Person {
 fn getConn() -> Result<Client, Error> {
     // GET DATABASE URL ENV VARIABLE
     let uri;
+    let connector = get_connector();
     dotenv().ok();
     match env::var("DATABASE_URL2") {
         Ok(val) => uri = val,
@@ -24,7 +35,7 @@ fn getConn() -> Result<Client, Error> {
     }
     print!("{}", uri);
     // return database connection
-    return Client::connect(&uri, NoTls);
+    return Client::connect(&uri, connector);
 }
 
 // INDEX ROUTE TO GET ALL PEOPLE
@@ -37,14 +48,18 @@ pub fn index() -> Json<Vec<Person>> {
     match getConn(){
         Ok(val) => {
             let mut client = val;
+            print!("Hello");
             for row in client.query("SELECT * FROM people;", &[]).unwrap() {
+                print!("{:?}", row);
+                print!("goodbye");
                 let id:i32 = row.get(0);
                 let name: String= row.get(1);
                 let age: i32 = row.get(2);
                 result.push(Person { id, name, age});
+                
             }
         },
-        Err(err) => print!("{}", err),
+        Err(err) => print!("ERROR: {}", err),
     }
     
     // turn hashmap into json and return it
